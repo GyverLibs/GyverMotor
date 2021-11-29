@@ -40,10 +40,10 @@
 ## Инициализация
 ```cpp
 // варианты инициализации в зависимости от типа драйвера:
-GMotor motor(DRIVER2WIRE, dig_pin, PWM_pin, (LOW / HIGH) )
-GMotor motor(DRIVER2WIRE_NO_INVERT, dig_pin, PWM_pin, (LOW / HIGH) )
-GMotor motor(DRIVER3WIRE, dig_pin_A, dig_pin_B, PWM_pin, (LOW/HIGH) )
-GMotor motor(RELAY2WIRE, dig_pin_A, dig_pin_B, (LOW/HIGH) )
+GMotor motor(DRIVER2WIRE, dig_pin, PWM_pin, (LOW / HIGH) );
+GMotor motor(DRIVER2WIRE_NO_INVERT, dig_pin, PWM_pin, (LOW / HIGH) );
+GMotor motor(DRIVER3WIRE, dig_pin_A, dig_pin_B, PWM_pin, (LOW/HIGH) );
+GMotor motor(RELAY2WIRE, dig_pin_A, dig_pin_B, (LOW/HIGH) );
 /*
   DRIVER2WIRE - двухпроводной драйвер (направление + ШИМ)
   DRIVER2WIRE_NO_INVERT - двухпроводной драйвер, в котором при смене направления не нужна инверсия ШИМ
