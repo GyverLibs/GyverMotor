@@ -1,18 +1,22 @@
-[![Foo](https://img.shields.io/badge/Version-3.2.1-brightgreen.svg?style=flat-square)](#versions)
+[![Foo](https://img.shields.io/badge/Version-4.0-brightgreen.svg?style=flat-square)](#versions)
 [![Foo](https://img.shields.io/badge/Website-AlexGyver.ru-blue.svg?style=flat-square)](https://alexgyver.ru/)
 [![Foo](https://img.shields.io/badge/%E2%82%BD$%E2%82%AC%20%D0%9D%D0%B0%20%D0%BF%D0%B8%D0%B2%D0%BE-%D1%81%20%D1%80%D1%8B%D0%B1%D0%BA%D0%BE%D0%B9-orange.svg?style=flat-square)](https://alexgyver.ru/support_alex/)
 
 # GyverMotor
 Библиотека для удобного управления коллекторными моторами через драйвер
 - Контроль скорости и направления вращения
-- Работа с 10 битным ШИМом
+- Работа с ШИМ любого разрешения
 - Плавный пуск и изменение скорости
-- Порог минимальной скважности
+- Активный тормоз
+- Порог минимального ШИМ
 - Deadtime
-- Поддержка 4х типов драйверов
+- Поддержка 5 типов драйверов
+
+> Библиотека "состоит" из двух библиотек: GyverMotor и GyverMotor2. Вторая версия новее, легче, лучше оптимизирована и проще в использовании!
 
 ### Совместимость
 Совместима со всеми Arduino платформами (используются Arduino-функции)
+- Для esp8266 не забудь переключить управление в 10 бит
 
 ### Документация
 К библиотеке есть [расширенная документация](https://alexgyver.ru/GyverMotor/)
@@ -40,6 +44,16 @@
 
 <a id="init"></a>
 ## Инициализация
+Типы драйверов:
+- **DRIVER2WIRE** - двухпроводной драйвер с инверсией шим (dir + PWM)
+- **DRIVER2WIRE_NO_INVERT** - двухпроводной драйвер без инверсии ШИМ (dir + PWM)
+- **DRIVER2WIRE_PWM** - двухпроводной драйвер с двумя ШИМ (PWM + PWM)
+- **DRIVER3WIRE** - трёхпроводной драйвер (dir + dir + PWM)
+- **RELAY2WIRE** - реле в качестве драйвера (dir + dir)
+    
+<details>
+<summary>GyverMotor</summary>
+
 ```cpp
 // варианты инициализации в зависимости от типа драйвера:
 GMotor motor(DRIVER2WIRE, dig_pin, PWM_pin, (LOW / HIGH) );
@@ -47,19 +61,34 @@ GMotor motor(DRIVER2WIRE_NO_INVERT, dig_pin, PWM_pin, (LOW / HIGH) );
 GMotor motor(DRIVER3WIRE, dig_pin_A, dig_pin_B, PWM_pin, (LOW/HIGH) );
 GMotor motor(RELAY2WIRE, dig_pin_A, dig_pin_B, (LOW/HIGH) );
 /*
-  DRIVER2WIRE - двухпроводной драйвер (направление + ШИМ)
-  DRIVER2WIRE_NO_INVERT - двухпроводной драйвер, в котором при смене направления не нужна инверсия ШИМ
-  DRIVER3WIRE - трёхпроводной драйвер (два пина направления + ШИМ)
-  RELAY2WIRE - реле в качестве драйвера (два пина направления)
-
   dig_pin, dig_pin_A, dig_pin_B - любой цифровой пин МК
   PWM_pin - любой ШИМ пин МК
   LOW / HIGH - уровень драйвера. Если при увеличении скорости мотор наоборот тормозит - смени уровень
 */
 ```
+</details>
+
+<details>
+<summary>GyverMotor2</summary>
+
+```cpp
+GMotor2<тип> motor(пин1, пин2, пин3);               // разрядность ШИМ 8 бит (0.. 255)
+GMotor2<тип, разрядность> motor(пин1, пин2, пин3);  // общий случай, разрядность ШИМ в битах
+
+// типы и количество пинов в зависимости от драйвера
+GMotor2<DRIVER2WIRE> motor(GPIO, PWM);
+GMotor2<DRIVER2WIRE_NO_INVERT> motor(GPIO, PWM);
+GMotor2<DRIVER2WIRE_PWM> motor(PWM, PWM);
+GMotor2<DRIVER3WIRE> motor(GPIO, GPIO, PWM);
+GMotor2<RELAY2WIRE> motor(GPIO, GPIO);
+```
+</details>
 
 <a id="usage"></a>
 ## Использование
+<details>
+<summary>GyverMotor</summary>
+
 ```cpp
 GMotor(GM_driverType type, int8_t param1 = _GM_NC, int8_t param2 = _GM_NC, int8_t param3 = _GM_NC, int8_t param4 = _GM_NC);
 // три варианта создания объекта в зависимости от драйвера:
@@ -132,68 +161,84 @@ setDirection() задаёт глобальное направление мото
 Для запуска нужно установить setMode(AUTO). В плавном режиме нужно почаще вызывать smoothTick с указанием целевой скорости. При значении 0 мотор сам плавно остановится. 
 Для резкой остановки можно использовать setMode(STOP).
 
+</details>
+
+<details>
+<summary>GyverMotor2</summary>
+```cpp
+void setMinDuty(uint16_t mduty);        // установить минимальный ШИМ (умолч. 0)
+void setMinDutyPerc(uint16_t mduty);    // установить минимальный ШИМ в % (умолч. 0)
+void setDeadtime(uint16_t us);          // установить deadtime в микросекундах (умолч. 0)
+void reverse(bool r);                   // реверс направления (умолч. false)
+
+void stop();                            // остановка. Если включен плавный режим, то плавная
+void brake();                           // активный тормоз
+void setSpeed(int16_t s);               // установить скорость (-макс.. макс)
+void setSpeedPerc(int16_t s);           // установить скорость в процентах (-100.. 100%)
+
+int8_t getState();                      // получить статус: мотор крутится (1 и -1), мотор остановлен (0)
+int16_t getSpeed();                     // получить текущую скорость мотора
+
+void smoothMode(bool mode);             // установить режим плавного изменения скорости (умолч. false)
+void tick();                            // плавное изменение к указанной скорости, вызывать в цикле
+void setSmoothSpeed(uint8_t s);         // установить скорость изменения скорости (умолч. 20)
+void setSmoothSpeedPerc(uint8_t s);     // установить скорость изменения скорости в процентах
+```
+
+### Разрядность ШИМ
+В AVR Arduino по умолчанию используется 8-ми битный ШИМ (0.. 255). В esp8266 используется 10-ти битный (0.. 1023). 
+При инициализации библиотеки можно настроить нужную разрядность, она может быть любой.
+
+### Скорость
+Скорость задаётся в `setSpeed(-макс ШИМ.. макс ШИМ)` в величине ШИМ сигнала, либо в `setSpeedPerc(-100.. 100)` в процентах. Скорость может быть отрицательной, 
+тогда мотор будет крутиться в обратную сторону. При значении 0 мотор остановится и драйвер будет отключен.
+
+### Режимы работы
+Вызов `stop()` равносилен `setSpeed(0)`. При прямом управлении мотор будет сразу остановлен, при плавном - остановится плавно. Драйвер отключится, вал мотора будет освобождён. 
+Вызов `brake()` остановит мотор и переключит драйвер в режим активного торможения (замкнёт мотор через себя). Вал мотора будет сопротивляться вращению. 
+Вызов `reverse(true)` инвертирует направление вращения мотора для всех функций.
+
+### Минимальный ШИМ
+В `setMinDuty(-макс ШИМ.. макс ШИМ)` можно установить минимальную скорость, при которой мотор начинает вращение, это удобно в большинстве применений. 
+Установленная в `setSpeed()` скорость будет автоматически масштабироваться с учётом минимальной. 
+Также можно задать минимальную скорость в процентах `setMinDutyPerc(-100.. 100)`.
+
+### Плавный режим
+В плавном режиме установленная в `setSpeed()` скорость применяется не сразу, а плавно в течением времени. Для включения 
+плавного режима нужно вызвать `smoothMode(true)` и поместить в основном цикле программы функцию-тикер `tick()`. 
+Внутри этой функции скорсть будет плавно меняться по встроенному таймеру (период - 50мс). 
+Можно настроить скорость изменения скорости - `setSmoothSpeed()` в величинах ШИМ и `setSmoothSpeedPerc()` в процентах.
+</details>
+
 <a id="example"></a>
 ## Пример
 Остальные примеры смотри в **examples**!
 ```cpp
-/*
-	Пример управления мотором при помощи драйвера полного моста и потенциометра
-*/
-#include "GyverMotor.h"
-GMotor motor(DRIVER2WIRE, 2, 3, HIGH);
+#include <GyverMotor2.h>
+GMotor2<DRIVER2WIRE> motor(5, 6);
+//GMotor2<DRIVER2WIRE_NO_INVERT> motor(5, 6);
+//GMotor2<DRIVER2WIRE_PWM> motor(5, 6);
+//GMotor2<DRIVER3WIRE> motor(5, 6, 11);
+//GMotor2<RELAY2WIRE> motor(5, 6);
 
 void setup() {
-  // установка программного deadtime на переключение направления, микросекунды
-  // по умолчанию стоит 0: deadtime отключен
-  // motor.setDeadtime(200);
-
-  // ГЛОБАЛЬНАЯ смена направления вращения мотора
-  // например чтобы FORWARD совпадал с направлением движения "вперёд" у машинки  
-  motor.setDirection(REVERSE);
-  motor.setDirection(NORMAL);   // умолч.
-
-  // смена режима работы мотора
-  motor.setMode(FORWARD);   // вперёд
-  motor.setMode(BACKWARD);  // назад
-  motor.setMode(BRAKE);  	// активный тормоз
-  motor.setMode(STOP);      // стоп, холостой (мотор отключен)
-  motor.setMode(AUTO);      // авторежим
-
-  // смена уровня драйвера (аналогично при инициализации)
-  // Если при увеличении скорости мотор наоборот тормозит - смени уровень
-  motor.setLevel(LOW);
-  motor.setLevel(HIGH);     // по умолч.
-  
-  // для работы в 10 бит необходимо также настроить ШИМ на 10 бит!!!
-  // читай тут https://alexgyver.ru/lessons/pwm-overclock/
-  // motor.setResolution(10);
-
-  // минимальный сигнал (по модулю), который будет подан на мотор
-  // Избавляет от ситуаций, когда мотор покоится и "пищит"
-  motor.setMinDuty(150);
-
-  // ключ на старт!
-  motor.setMode(FORWARD);
+  motor.setMinDuty(70);   // мин. ШИМ
+  //motor.reverse(1);     // реверс
+  //motor.setDeadtime(5); // deadtime
 }
 
 void loop() {
-  // потенциометр на А0
-  // преобразуем значение в -255.. 255
-  int val = 255 - analogRead(0) / 2;
-
-  // установка скорости:
-  // * (0..255) при ручном выборе направления (setMode: FORWARD/BACKWARD)
-  // * (-255..255) при автоматическом (поставить setMode(FORWARD))
-  // * (0..1023) в режиме 10 бит при ручном выборе направления (setMode: FORWARD/BACKWARD)
-  // * (-1023..1023) в режиме 10 бит при автоматическом (поставить setMode(FORWARD))    
-  
-  motor.setSpeed(val);
-  // в данном случае мотор будет остановлен в среднем положении рукоятки
-  // и разгоняться в противоположные скорости в крайних её положениях
-  
-  delay(10);  // задержка просто для "стабильности"
+  motor.setSpeed(10);
+  delay(1000);
+  motor.setSpeed(-100);
+  delay(1000);
+  motor.setSpeed(50);
+  delay(1000);
+  motor.setSpeed(255);
+  delay(1000);
+  motor.brake();
+  delay(3000);
 }
-
 ```
 
 <a id="versions"></a>
@@ -214,6 +259,7 @@ void loop() {
 - v3.1: мелкие исправления
 - v3.2: улучшена стабильность плавного режима
 - v3.2.1: вернул run() в public
+- v4.0: исправлен баг в GyverMotor. Добавлен GyverMotor2
 
 <a id="feedback"></a>
 ## Баги и обратная связь

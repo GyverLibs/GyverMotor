@@ -100,7 +100,8 @@ void GMotor::setMinDuty(int duty) {
     _k = 1.0 - (float)_minDuty / _maxDuty;
 }
 
-void GMotor::setMode(GM_workMode mode) {	
+void GMotor::setMode(GM_workMode mode) {
+    if (_mode == mode) return;
     _mode = mode;
     run(mode, _duty);
 }
