@@ -165,6 +165,7 @@ setDirection() задаёт глобальное направление мото
 
 <details>
 <summary>GyverMotor2</summary>
+
 ```cpp
 void setMinDuty(uint16_t mduty);        // установить минимальный ШИМ (умолч. 0)
 void setMinDutyPerc(uint16_t mduty);    // установить минимальный ШИМ в % (умолч. 0)
@@ -208,7 +209,6 @@ void setSmoothSpeedPerc(uint8_t s);     // установить скорость
 плавного режима нужно вызвать `smoothMode(true)` и поместить в основном цикле программы функцию-тикер `tick()`. 
 Внутри этой функции скорсть будет плавно меняться по встроенному таймеру (период - 50мс). 
 Можно настроить скорость изменения скорости - `setSmoothSpeed()` в величинах ШИМ и `setSmoothSpeedPerc()` в процентах.
-
 </details>
 
 <a id="example"></a>
