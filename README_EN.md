@@ -1,3 +1,5 @@
+This is an automatic translation, may be incorrect in some places. See sources and examples!
+
 # GyverMotor
 Library for convenient control of collector motors through the driver
 - Control of speed and direction of rotation
