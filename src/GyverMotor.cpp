@@ -3,46 +3,46 @@
 GMotor::GMotor(GM_driverType type, int8_t param1, int8_t param2, int8_t param3, int8_t param4) {
     _type = type;
     switch (_type) {
-    case DRIVER2WIRE_NO_INVERT:	
-    case DRIVER2WIRE:
-        _digA = param1;
-        _pwmC = param2;
-        if (param3 != _GM_NC) _level = !param3;
-        break;
-    case DRIVER3WIRE:
-        _digA = param1;
-        _digB = param2;
-        _pwmC = param3;	
-        if (param4 != _GM_NC) _level = !param4;
-        break;	
-    case RELAY2WIRE:
-        _digA = param1;
-        _digB = param2;
-        if (param3 != _GM_NC) _level = !param3;
-        break;		
+        case DRIVER2WIRE_NO_INVERT:
+        case DRIVER2WIRE:
+            _digA = param1;
+            _pwmC = param2;
+            if (param3 != _GM_NC) _level = !param3;
+            break;
+        case DRIVER3WIRE:
+            _digA = param1;
+            _digB = param2;
+            _pwmC = param3;
+            if (param4 != _GM_NC) _level = !param4;
+            break;
+        case RELAY2WIRE:
+            _digA = param1;
+            _digB = param2;
+            if (param3 != _GM_NC) _level = !param3;
+            break;
     }
 
     if (_digA != _GM_NC) pinMode(_digA, OUTPUT);
     if (_digB != _GM_NC) pinMode(_digB, OUTPUT);
     if (_pwmC != _GM_NC) pinMode(_pwmC, OUTPUT);
-    
+
     setMode(STOP);
 }
 
 void GMotor::setSpeed(int16_t duty) {
-    if (_mode < 2) {    // FORWARD/BACKWARD/AUTO
+    if (_mode < 2) {  // FORWARD/BACKWARD/AUTO
         _duty = constrain(duty, -_maxDuty, _maxDuty);
-        
+
         // фикс стандартного analogWrite(пин, 255) для >8 бит
         if (_maxDuty > 255 && abs(_duty) == 255) _duty++;
-        
+
         if (duty == 0) run(STOP, 0);
         else {
             if (duty > 0) {
-                if (_minDuty != 0) _duty = _duty * _k + _minDuty;	// сжимаем диапазон
+                if (_minDuty != 0) _duty = _duty * _k + _minDuty;  // сжимаем диапазон
                 run(_mode, _duty);
             } else {
-                if (_minDuty != 0) _duty = _duty * _k - _minDuty;	// сжимаем диапазон
+                if (_minDuty != 0) _duty = _duty * _k - _minDuty;  // сжимаем диапазон
                 run(BACKWARD, -_duty);
             }
         }
@@ -53,7 +53,7 @@ void GMotor::run(GM_workMode mode, int16_t duty) {
     // дедтайм
     if (_deadtime > 0 && _lastMode != mode) {
         _lastMode = mode;
-        setPins(_level, _level, 0);	// выключить всё
+        setPins(_level, _level, 0);  // выключить всё
         delayMicroseconds(_deadtime);
     }
 
@@ -64,10 +64,23 @@ void GMotor::run(GM_workMode mode, int16_t duty) {
     }
 
     switch (mode) {
-    case FORWARD:	setPins(_level, !_level, duty); _state = 1; break;		
-    case BACKWARD:	setPins(!_level, _level, (_type == DRIVER2WIRE) ? (_maxDuty - duty) : (duty)); _state = -1; break;
-    case BRAKE:		setPins(!_level, !_level, !_level * 255); _state = 0; break;	// при 0/255 analogWrite сделает 0/1
-    case STOP:		setPins(_level, _level, _level * 255); _duty = _dutyS = 0; _state = 0; break;
+        case FORWARD:
+            setPins(_level, !_level, duty);
+            _state = 1;
+            break;
+        case BACKWARD:
+            setPins(!_level, _level, (_type == DRIVER2WIRE) ? (_maxDuty - duty) : (duty));
+            _state = -1;
+            break;
+        case BRAKE:
+            setPins(!_level, !_level, !_level * 255);
+            _state = 0;
+            break;  // при 0/255 analogWrite сделает 0/1
+        case STOP:
+            setPins(_level, _level, _level * 255);
+            _duty = _dutyS = 0;
+            _state = 0;
+            break;
     }
 }
 
@@ -91,8 +104,8 @@ int GMotor::getState() {
 }
 
 void GMotor::setResolution(byte bit) {
-    _maxDuty = (1 << bit) - 1;	// -1 для смещения
-    setMinDuty(_minDuty);		// пересчитаем k
+    _maxDuty = (1 << bit) - 1;  // -1 для смещения
+    setMinDuty(_minDuty);       // пересчитаем k
 }
 
 void GMotor::setMinDuty(int duty) {
