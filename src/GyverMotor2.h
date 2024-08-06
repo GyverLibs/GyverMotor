@@ -107,7 +107,7 @@ class GMotor2 {
 
    private:
     // макс ШИМ при разрешении
-    int16_t getMax() {
+    inline int16_t getMax() {
         return (1 << GM_RES) - 1;
     }
 
@@ -140,11 +140,11 @@ class GMotor2 {
 
             case DRIVER2WIRE_PWM:
                 if (dir > 0) {
-                    digitalWrite(pinA, 0);
+                    analogWrite(pinA, 0);
                     analogWrite(pinB, sp);
                 } else {
                     analogWrite(pinA, sp);
-                    digitalWrite(pinB, 0);
+                    analogWrite(pinB, 0);
                 }
                 break;
 
@@ -162,10 +162,15 @@ class GMotor2 {
     }
 
     // установить все пины
-    void setAll(uint8_t val) {
-        digitalWrite(pinA, val);
-        digitalWrite(pinB, val);
-        if (pinC != 255) digitalWrite(pinC, val);
+    void setAll(bool val) {
+        if (GM_TYPE == DRIVER2WIRE_PWM) {
+            analogWrite(pinA, val ? getMax() : 0);
+            analogWrite(pinB, val ? getMax() : 0);
+        } else {
+            digitalWrite(pinA, val);
+            digitalWrite(pinB, val);
+            if (pinC != 255) digitalWrite(pinC, val);
+        }
         dir = 0;
     }
 
