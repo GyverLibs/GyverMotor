@@ -52,132 +52,30 @@
 
 
 <a id="init"></a>
-## Инициализация
+
+## Инициализация (GyverMotor2)
 Типы драйверов:
-- **DRIVER2WIRE** - двухпроводной драйвер с инверсией шим (dir + PWM)
-- **DRIVER2WIRE_NO_INVERT** - двухпроводной драйвер без инверсии ШИМ (dir + PWM)
-- **DRIVER2WIRE_PWM** - двухпроводной драйвер с двумя ШИМ (PWM + PWM)
-- **DRIVER3WIRE** - трёхпроводной драйвер (dir + dir + PWM)
-- **RELAY2WIRE** - реле в качестве драйвера (dir + dir)
+
+| Драйвер                  | Описание                               | Пины            | Сигнал вперёд | Сигнал назад |
+|--------------------------|----------------------------------------|-----------------|---------------|--------------|
+| `DRIVER2WIRE`            | двухпроводной драйвер с инверсией шим  | GPIO, PWM       | 0, PWM        | 1, ~PWM      |
+| `DRIVER2WIRE_NO_INVERT`  | двухпроводной драйвер без инверсии ШИМ | GPIO, PWM       | 0, PWM        | 1, PWM       |
+| `DRIVER2WIRE_PWM`        | двухпроводной драйвер с двумя ШИМ      | PWM, PWM        | 0, PWM        | PWM, 0       |
+| `DRIVER2WIRE_PWM_INVERT` | двухпроводной драйвер с двумя ШИМ      | PWM, PWM        | 1, PWM        | PWM, 1       |
+| `DRIVER3WIRE`            | трёхпроводной драйвер                  | GPIO, GPIO, PWM | 0, 1, PWM     | 1, 0, PWM    |
+| `RELAY2WIRE`             | реле в качестве драйвера               | GPIO, GPIO      | 0, 1          | 1, 0         |
 
 Для двухпроводных мостовых драйверов стоит отдавать предпочтение типу **DRIVER2WIRE_PWM**. Он требует два ШИМ пина, 
-но драйвер работает более правильно и меньше нагружается, а также скорость будет одинаковая в обе стороны. В отличие от простого **DRIVER2WIRE**.
-    
-<details>
-<summary>GyverMotor</summary>
-
-```cpp
-// варианты инициализации в зависимости от типа драйвера:
-GMotor motor(DRIVER2WIRE, dig_pin, PWM_pin, (LOW / HIGH) );
-GMotor motor(DRIVER2WIRE_NO_INVERT, dig_pin, PWM_pin, (LOW / HIGH) );
-GMotor motor(DRIVER3WIRE, dig_pin_A, dig_pin_B, PWM_pin, (LOW/HIGH) );
-GMotor motor(RELAY2WIRE, dig_pin_A, dig_pin_B, (LOW/HIGH) );
-/*
-  dig_pin, dig_pin_A, dig_pin_B - любой цифровой пин МК
-  PWM_pin - любой ШИМ пин МК
-  LOW / HIGH - уровень драйвера. Если при увеличении скорости мотор наоборот тормозит - смени уровень
-*/
-```
-</details>
-
-<details>
-<summary>GyverMotor2</summary>
+но драйвер работает более правильно и меньше нагружается, а также скорость будет одинаковая в обе стороны, в отличие от простого **DRIVER2WIRE**.
 
 ```cpp
 GMotor2<тип> motor(пин1, пин2, пин3);               // разрядность ШИМ 8 бит (0.. 255)
 GMotor2<тип, разрядность> motor(пин1, пин2, пин3);  // общий случай, разрядность ШИМ в битах
-
-// типы и количество пинов в зависимости от драйвера
-GMotor2<DRIVER2WIRE> motor(GPIO, PWM);
-GMotor2<DRIVER2WIRE_NO_INVERT> motor(GPIO, PWM);
-GMotor2<DRIVER2WIRE_PWM> motor(PWM, PWM);
-GMotor2<DRIVER3WIRE> motor(GPIO, GPIO, PWM);
-GMotor2<RELAY2WIRE> motor(GPIO, GPIO);
 ```
-</details>
 
 <a id="usage"></a>
-## Использование
-<details>
-<summary>GyverMotor</summary>
 
-```cpp
-GMotor(GM_driverType type, int8_t param1 = _GM_NC, int8_t param2 = _GM_NC, int8_t param3 = _GM_NC, int8_t param4 = _GM_NC);
-// три варианта создания объекта в зависимости от драйвера:
-// GMotor motor(DRIVER2WIRE, dig_pin, PWM_pin, (LOW/HIGH) )
-// GMotor motor(DRIVER3WIRE, dig_pin_A, dig_pin_B, PWM_pin, (LOW/HIGH) )
-// GMotor motor(RELAY2WIRE, dig_pin_A, dig_pin_B, (LOW/HIGH) )
-
-// установка скорости -255..255 (8 бит) и -1023..1023 (10 бит)
-void setSpeed(int16_t duty);
-
-// сменить режим работы мотора:	
-// FORWARD - вперёд
-// BACKWARD - назад
-// STOP - остановить
-// BRAKE - активный тормоз
-// AUTO - подчиняется setSpeed (-255.. 255)
-void setMode(GM_workMode mode);
-
-// направление вращения	
-// NORM - обычное
-// REVERSE - обратное
-void setDirection(bool direction);
-
-// установить минимальную скважность (при которой мотор начинает крутиться)
-void setMinDuty(int duty);
-
-// установить разрешение ШИМ в битах
-void setResolution(byte bit);
-
-// установить deadtime (в микросекундах). По умолч 0
-void setDeadtime(uint16_t deadtime);	
-
-// установить уровень драйвера (по умолч. HIGH)
-void setLevel(int8_t level);			
-
-// плавное изменение к указанной скорости (к значению ШИМ)
-void smoothTick(int16_t duty);
-
-// скорость изменения скорости
-void setSmoothSpeed(uint8_t speed);	
-
-// возвращает -1 при вращении BACKWARD, 1 при FORWARD и 0 при остановке и торможении
-int getState();
-
-// внутренняя переменная скважности для отладки
-int16_t _duty = 0;
-
-// свовместимость со старыми версиями
-// установить выход в 8 бит
-void set8bitMode();		
-
-// установить выход в 10 бит
-void set10bitMode();
-```
-
-### Логика работы
-В setMinDuty() можно установить минимальную скорость (0..255), при которой мотор начинает вращение. 
-Дальнейшие настройки скорости будут автоматически масштабироваться с учётом минимальной.  
-setDirection() задаёт глобальное направление мотора, которое автоматически влияет на все функции скорости.
-
-#### Обычный режим
-Запускается setMode(FORWARD) для движения вперёд, setMode(BACKWARD) - назад. 
-Скорость устанавливается в setSpeed() либо run(FORWARD/BACKWARD, скорость). Остановить можно setMode(STOP).
-
-#### Авто режим
-Запускается setMode(AUTO), скорость задаётся в setSpeed(), поддерживаются отрицательные значения для вращения в другую сторону. 
-Остановить можно setMode(STOP).
-
-#### Плавный режим
-Для запуска нужно установить setMode(AUTO). В плавном режиме нужно почаще вызывать smoothTick с указанием целевой скорости. При значении 0 мотор сам плавно остановится. 
-Для резкой остановки можно использовать setMode(STOP).
-
-</details>
-
-<details>
-<summary>GyverMotor2</summary>
-
+## Использование (GyverMotor2)
 ```cpp
 void setMinDuty(uint16_t mduty);        // установить минимальный ШИМ (умолч. 0)
 void setMinDutyPerc(uint16_t mduty);    // установить минимальный ШИМ в % (умолч. 0)
@@ -221,9 +119,9 @@ void setSmoothSpeedPerc(uint8_t s);     // установить скорость
 плавного режима нужно вызвать `smoothMode(true)` и поместить в основном цикле программы функцию-тикер `tick()`. 
 Внутри этой функции скорсть будет плавно меняться по встроенному таймеру (период - 50мс). 
 Можно настроить скорость изменения скорости - `setSmoothSpeed()` в величинах ШИМ и `setSmoothSpeedPerc()` в процентах.
-</details>
 
 <a id="example"></a>
+
 ## Пример
 Остальные примеры смотри в **examples**!
 ```cpp
@@ -255,6 +153,7 @@ void loop() {
 ```
 
 <a id="versions"></a>
+
 ## Версии
 - v1.1 - убраны дефайны
 - v1.2 - возвращены дефайны
@@ -275,10 +174,10 @@ void loop() {
 - v4.0: исправлен баг в GyverMotor. Добавлен GyverMotor2
 
 <a id="feedback"></a>
+
 ## Баги и обратная связь
 При нахождении багов создавайте **Issue**, а лучше сразу пишите на почту [alex@alexgyver.ru](mailto:alex@alexgyver.ru)  
 Библиотека открыта для доработки и ваших **Pull Request**'ов!
-
 
 При сообщении о багах или некорректной работе библиотеки нужно обязательно указывать:
 - Версия библиотеки

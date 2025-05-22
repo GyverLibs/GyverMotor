@@ -3,11 +3,12 @@
 #include <Arduino.h>
 
 enum GM_driver {
-    DRIVER2WIRE,            // двухпроводной драйвер с инверсией шим (dir + PWM)
-    DRIVER2WIRE_NO_INVERT,  // двухпроводной драйвер без инверсии ШИМ (dir + PWM)
-    DRIVER2WIRE_PWM,        // двухпроводной драйвер с двумя ШИМ (PWM + PWM)
-    DRIVER3WIRE,            // трёхпроводной драйвер (dir + dir + PWM)
-    RELAY2WIRE,             // реле в качестве драйвера (dir + dir)
+    DRIVER2WIRE,             // двухпроводной драйвер с инверсией шим (dir + PWM)
+    DRIVER2WIRE_NO_INVERT,   // двухпроводной драйвер без инверсии ШИМ (dir + PWM)
+    DRIVER2WIRE_PWM,         // двухпроводной драйвер с двумя ШИМ (PWM + PWM)
+    DRIVER2WIRE_PWM_INVERT,  // двухпроводной драйвер с двумя ШИМ (PWM + PWM)
+    DRIVER3WIRE,             // трёхпроводной драйвер (dir + dir + PWM)
+    RELAY2WIRE,              // реле в качестве драйвера (dir + dir)
 };
 
 #define _GM_SMOOTH_PRD 50  // период таймера плавной скорости, мс
@@ -145,6 +146,16 @@ class GMotor2 {
                 } else {
                     analogWrite(pinA, sp);
                     analogWrite(pinB, 0);
+                }
+                break;
+
+            case DRIVER2WIRE_PWM_INVERT:
+                if (dir > 0) {
+                    analogWrite(pinA, 1);
+                    analogWrite(pinB, sp);
+                } else {
+                    analogWrite(pinA, sp);
+                    analogWrite(pinB, 1);
                 }
                 break;
 
