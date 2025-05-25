@@ -141,21 +141,21 @@ class GMotor2 {
 
             case DRIVER2WIRE_PWM:
                 if (dir > 0) {
-                    analogWrite(pinA, 0);
+                    digitalWrite(pinA, 0);
                     analogWrite(pinB, sp);
                 } else {
                     analogWrite(pinA, sp);
-                    analogWrite(pinB, 0);
+                    digitalWrite(pinB, 0);
                 }
                 break;
 
             case DRIVER2WIRE_PWM_INVERT:
-                if (dir > 0) {
-                    analogWrite(pinA, 1);
+                if (dir < 0) {
+                    digitalWrite(pinA, 1);
                     analogWrite(pinB, sp);
                 } else {
                     analogWrite(pinA, sp);
-                    analogWrite(pinB, 1);
+                    digitalWrite(pinB, 1);
                 }
                 break;
 
