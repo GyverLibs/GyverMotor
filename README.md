@@ -61,7 +61,7 @@
 | `DRIVER2WIRE`            | двухпроводной драйвер с инверсией шим  | GPIO, PWM       | 0, PWM        | 1, ~PWM      |
 | `DRIVER2WIRE_NO_INVERT`  | двухпроводной драйвер без инверсии ШИМ | GPIO, PWM       | 0, PWM        | 1, PWM       |
 | `DRIVER2WIRE_PWM`        | двухпроводной драйвер с двумя ШИМ      | PWM, PWM        | 0, PWM        | PWM, 0       |
-| `DRIVER2WIRE_PWM_INVERT` | двухпроводной драйвер с двумя ШИМ      | PWM, PWM        | 1, PWM        | PWM, 1       |
+| `DRIVER2WIRE_PWM_INVERT` | двухпроводной драйвер с двумя ШИМ      | PWM, PWM        | PWM, 1        | 1, PWM       |
 | `DRIVER3WIRE`            | трёхпроводной драйвер                  | GPIO, GPIO, PWM | 0, 1, PWM     | 1, 0, PWM    |
 | `RELAY2WIRE`             | реле в качестве драйвера               | GPIO, GPIO      | 0, 1          | 1, 0         |
 
