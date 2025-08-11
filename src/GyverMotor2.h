@@ -24,7 +24,7 @@ class GMotor2 {
     GMotor2(uint8_t a, uint8_t b, uint8_t c = 0xff) : _pinA(a), _pinB(b), _pinC(c) {
         pinMode(_pinA, OUTPUT);
         pinMode(_pinB, OUTPUT);
-        if (_pinC != 0xff) pinMode(_pinC, OUTPUT);
+        if (GM_TYPE == DRIVER3WIRE) pinMode(_pinC, OUTPUT);
         _setAll(0);
     }
 
@@ -162,22 +162,22 @@ class GMotor2 {
             case DRIVER2WIRE_PWM:
             case DRIVER2WIRE_PWM_SPEED:
                 if (dir) {
-                    digitalWrite(_pinA, 0);
+                    analogWrite(_pinA, 0);
                     analogWrite(_pinB, spd);
                 } else {
                     analogWrite(_pinA, spd);
-                    digitalWrite(_pinB, 0);
+                    analogWrite(_pinB, 0);
                 }
                 break;
 
             case DRIVER2WIRE_PWM_INVERT:
             case DRIVER2WIRE_PWM_POWER:
                 if (!dir) {
-                    digitalWrite(_pinA, 1);
+                    analogWrite(_pinA, maxDuty);
                     analogWrite(_pinB, maxDuty - spd);
                 } else {
                     analogWrite(_pinA, maxDuty - spd);
-                    digitalWrite(_pinB, 1);
+                    analogWrite(_pinB, maxDuty);
                 }
                 break;
 
@@ -196,9 +196,34 @@ class GMotor2 {
 
     // установить все пины
     void _setAll(bool val) {
-        digitalWrite(_pinA, val);
-        digitalWrite(_pinB, val);
-        if (_pinC != 0xff) digitalWrite(_pinC, val);
+        switch (GM_TYPE) {
+            case DRIVER2WIRE:
+                digitalWrite(_pinA, val);
+                analogWrite(_pinB, val ? maxDuty : 0);
+                break;
+
+            case DRIVER2WIRE_NO_INVERT:
+                digitalWrite(_pinA, val);
+                analogWrite(_pinB, val ? 0 : maxDuty);
+                break;
+
+            case DRIVER2WIRE_PWM:
+            case DRIVER2WIRE_PWM_SPEED:
+            case DRIVER2WIRE_PWM_INVERT:
+            case DRIVER2WIRE_PWM_POWER:
+                analogWrite(_pinA, val ? maxDuty : 0);
+                analogWrite(_pinB, val ? maxDuty : 0);
+                break;
+
+            case DRIVER3WIRE:
+                analogWrite(_pinC, val ? maxDuty : 0);
+                // fall
+
+            case RELAY2WIRE:
+                digitalWrite(_pinA, val);
+                digitalWrite(_pinB, val);
+                break;
+        }
     }
 
     int16_t _mduty = 0, _speed = 0;
