@@ -13,8 +13,9 @@ enum GM_driver {
     DRIVER3WIRE,            // трёхпроводной драйвер (dir + dir + PWM)
     RELAY2WIRE,             // реле в качестве драйвера (dir + dir)
 
-    DRIVER2WIRE_PWM,         // синоним DRIVER2WIRE_PWM_SPEED
-    DRIVER2WIRE_PWM_INVERT,  // синоним DRIVER2WIRE_PWM_POWER
+    // legacy
+    DRIVER2WIRE_PWM = DRIVER2WIRE_PWM_SPEED,
+    DRIVER2WIRE_PWM_INVERT = DRIVER2WIRE_PWM_POWER,
 };
 
 template <GM_driver GM_TYPE, uint8_t GM_RES = 8>
@@ -85,7 +86,7 @@ class GMotor2 {
     // плавное изменение к указанной скорости с ускорением setAccel, вызывать в loop
     void tick() {
 #ifndef GMOTOR2_NO_ACCEL
-        if (_ds && (_speed != _target) && ((uint8_t)((uint8_t)millis() - _tmr) >= GMOTOR2_DT)) {
+        if (_ds && (_speed != _target) && (uint8_t(uint8_t(millis()) - _tmr) >= GMOTOR2_DT)) {
             _tmr = millis();
             if (abs(_speed - _target) > _ds) _run(_speed + (_speed < _target ? _ds : -_ds));
             else _run(_target);
@@ -159,7 +160,6 @@ class GMotor2 {
                 analogWrite(_pinB, spd);
                 break;
 
-            case DRIVER2WIRE_PWM:
             case DRIVER2WIRE_PWM_SPEED:
                 if (dir) {
                     analogWrite(_pinA, 0);
@@ -170,7 +170,6 @@ class GMotor2 {
                 }
                 break;
 
-            case DRIVER2WIRE_PWM_INVERT:
             case DRIVER2WIRE_PWM_POWER:
                 if (!dir) {
                     analogWrite(_pinA, maxDuty);
@@ -198,18 +197,12 @@ class GMotor2 {
     void _setAll(bool val) {
         switch (GM_TYPE) {
             case DRIVER2WIRE:
+            case DRIVER2WIRE_NO_INVERT:
                 digitalWrite(_pinA, val);
                 analogWrite(_pinB, val ? maxDuty : 0);
                 break;
 
-            case DRIVER2WIRE_NO_INVERT:
-                digitalWrite(_pinA, val);
-                analogWrite(_pinB, val ? 0 : maxDuty);
-                break;
-
-            case DRIVER2WIRE_PWM:
             case DRIVER2WIRE_PWM_SPEED:
-            case DRIVER2WIRE_PWM_INVERT:
             case DRIVER2WIRE_PWM_POWER:
                 analogWrite(_pinA, val ? maxDuty : 0);
                 analogWrite(_pinB, val ? maxDuty : 0);
