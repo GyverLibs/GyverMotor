@@ -6,6 +6,9 @@
 
 [![Foo](https://img.shields.io/badge/ПОДПИСАТЬСЯ-НА%20ОБНОВЛЕНИЯ-brightgreen.svg?style=social&logo=telegram&color=blue)](https://t.me/GyverLibs)
 
+|⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️<br><br>**ВНИМАНИЕ, БИБЛИОТЕКА УСТАРЕЛА! ИСПОЛЬЗУЙ БИБЛИОТЕКУ [GyverMotor2](https://github.com/GyverLibs/GyverMotor2)**<br><br>⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️|
+| --- |
+
 # GyverMotor
 Библиотека для удобного управления коллекторными моторами через драйвер
 - Контроль скорости и направления вращения
